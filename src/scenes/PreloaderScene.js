@@ -16,11 +16,21 @@ export default class PreloaderScene extends Phaser.Scene {
     super("Preloader");
   }
 
-  init(data) {
+  init() {
     this.readyCount = 0;
   }
 
   preload() {
+    this.createPreloader();
+
+    // time event for logo
+    // TODO: update delayedCall time
+    this.timedEvent = this.time.delayedCall(1, this.ready, [], this);
+
+    this.loadAssets();
+  }
+
+  createPreloader() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -91,10 +101,9 @@ export default class PreloaderScene extends Phaser.Scene {
       percentText.destroy();
       this.ready();
     });
+  }
 
-    // time event for logo
-    this.timedEvent = this.time.delayedCall(3000, this.ready, [], this);
-
+  loadAssets() {
     // load assets
     this.load.image("bullet", bulletImg);
     this.load.image("tower", towerImg);
@@ -119,7 +128,7 @@ export default class PreloaderScene extends Phaser.Scene {
   ready() {
     this.readyCount++;
     if (this.readyCount === 2) {
-      this.scene.start("Game");
+      this.scene.start("Title");
     }
   }
 }
