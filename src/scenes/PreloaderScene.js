@@ -16,12 +16,84 @@ export default class PreloaderScene extends Phaser.Scene {
     super("Preloader");
   }
 
+  init(data) {
+    this.readyCount = 0;
+  }
+
   preload() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
     // add logo image
     this.add.image(width / 2, height / 2 - 100, "logo");
+
+    // display progress bar
+    const progressBar = this.add.graphics();
+    const progressBox = this.add.graphics();
+    progressBox.fillStyle(0x222222, 0.8);
+    progressBox.fillRect(width / 2 - 160, height / 2 - 30, 320, 50);
+
+    // loading text
+    const loadingText = this.make.text({
+      x: width / 2,
+      y: height / 2 - 50,
+      text: "Loading...",
+      style: {
+        font: "20px monospace",
+        fill: "#ffffff"
+      }
+    });
+    loadingText.setOrigin(0.5, 0.5);
+
+    // percent text
+    const percentText = this.make.text({
+      x: width / 2,
+      y: height / 2 - 5,
+      text: "0%",
+      style: {
+        font: "18px monospace",
+        fill: "#ffffff"
+      }
+    });
+    percentText.setOrigin(0.5, 0.5);
+
+    // loading assets text
+    const assetText = this.make.text({
+      x: width / 2,
+      y: height / 2 + 50,
+      text: "",
+      style: {
+        font: "18px monospace",
+        fill: "#ffffff"
+      }
+    });
+    assetText.setOrigin(0.5, 0.5);
+
+    // update progress bar
+    this.load.on("progress", value => {
+      percentText.setText(`${parseInt(value * 100)}%`);
+      progressBar.clear();
+      progressBar.fillStyle(0xffffff, 1);
+      progressBar.fillRect(width / 2 - 150, height / 2 - 20, 300 * value, 30);
+    });
+
+    // update file progress text
+    this.load.on("fileprogress", file => {
+      assetText.setText(`Loading asset: ${file.key}`);
+    });
+
+    // remove progressbar when complete
+    this.load.on("complete", file => {
+      progressBox.destroy();
+      progressBar.destroy();
+      assetText.destroy();
+      loadingText.destroy();
+      percentText.destroy();
+      this.ready();
+    });
+
+    // time event for logo
+    this.timedEvent = this.time.delayedCall(3000, this.ready, [], this);
 
     // load assets
     this.load.image("bullet", bulletImg);
@@ -44,7 +116,10 @@ export default class PreloaderScene extends Phaser.Scene {
     });
   }
 
-  create() {
-    this.scene.start("Game");
+  ready() {
+    this.readyCount++;
+    if (this.readyCount === 2) {
+      this.scene.start("Game");
+    }
   }
 }
