@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import map from "../config/map";
+import Enemy from "../objects/Enemy";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -8,12 +9,39 @@ export default class GameScene extends Phaser.Scene {
 
   init() {
     this.map = map.map(arr => arr.slice());
+    this.nextEnemy = 0;
   }
 
   create() {
     this.createMap();
     this.createPath();
     this.createCursor();
+    this.createGroups();
+  }
+
+  update(time, delta) {
+    // if its time for the next enemy
+    if (time > this.nextEnemy) {
+      let enemy = this.enemies.getFirstDead();
+      if (!enemy) {
+        enemy = new Enemy(this, 0, 0, this.path);
+        this.enemies.add(enemy);
+      }
+      enemy.setActive(true);
+      enemy.setVisible(true);
+
+      // place the enemy at the start of the path
+      enemy.startOnPath();
+
+      this.nextEnemy = time + 2000;
+    }
+  }
+
+  createGroups() {
+    this.enemies = this.physics.add.group({
+      classType: Enemy,
+      runChildUpdate: true
+    });
   }
 
   createCursor() {
