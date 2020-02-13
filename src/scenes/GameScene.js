@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import map from "../config/map";
 import Enemy from "../objects/Enemy";
+import Turret from "../objects/Turret";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -17,6 +18,8 @@ export default class GameScene extends Phaser.Scene {
     this.createPath();
     this.createCursor();
     this.createGroups();
+
+    this.input.on("pointerdown", pointer => this.placeTurret(pointer));
   }
 
   update(time, delta) {
@@ -40,6 +43,11 @@ export default class GameScene extends Phaser.Scene {
   createGroups() {
     this.enemies = this.physics.add.group({
       classType: Enemy,
+      runChildUpdate: true
+    });
+
+    this.turrets = this.add.group({
+      classType: Turret,
       runChildUpdate: true
     });
   }
@@ -96,5 +104,28 @@ export default class GameScene extends Phaser.Scene {
 
     // add tower
     this.add.image(480, 480, "base");
+  }
+
+  getEnemy() {
+    return false;
+  }
+
+  addBullet() {}
+
+  placeTurret(pointer) {
+    const i = Math.floor(pointer.y / 64);
+    const j = Math.floor(pointer.x / 64);
+
+    if (this.canPlaceTurret(i, j)) {
+      let turret = this.turrets.getFirstDead();
+      if (!turret) {
+        turret = new Turret(this, 0, 0, this.map);
+        this.turrets.add(turret);
+      }
+      turret.setActive(true);
+      turret.setVisible(true);
+      turret.place(i, j);
+      // todo: add logic to update num of turrets
+    }
   }
 }
