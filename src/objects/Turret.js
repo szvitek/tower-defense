@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-// import levelConfig from "../config/levelConfig";
 
 export default class Turret extends Phaser.GameObjects.Image {
   constructor(scene, x, y, map) {
@@ -30,13 +29,7 @@ export default class Turret extends Phaser.GameObjects.Image {
   fire() {
     const enemy = this.scene.getEnemy(this.x, this.y, 100);
     if (enemy) {
-      const angle = Phaser.Math.Angle.Between(
-        this.x,
-        this,
-        y,
-        enemy.x,
-        enemy.y
-      );
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
       this.scene.addBullet(this.x, this.y, angle);
       this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG;
     }

@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import map from "../config/map";
 import Enemy from "../objects/Enemy";
 import Turret from "../objects/Turret";
+import Bullet from "../objects/Bullet";
+import levelConfig from "../config/levelConfig";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -20,6 +22,10 @@ export default class GameScene extends Phaser.Scene {
     this.createGroups();
 
     this.input.on("pointerdown", pointer => this.placeTurret(pointer));
+
+    this.physics.add.overlap(this.enemies, this.bullets, (enemy, bullet) =>
+      this.damageEnemy(enemy, bullet)
+    );
   }
 
   update(time, delta) {
@@ -48,6 +54,11 @@ export default class GameScene extends Phaser.Scene {
 
     this.turrets = this.add.group({
       classType: Turret,
+      runChildUpdate: true
+    });
+
+    this.bullets = this.physics.add.group({
+      classType: Bullet,
       runChildUpdate: true
     });
   }
@@ -106,11 +117,27 @@ export default class GameScene extends Phaser.Scene {
     this.add.image(480, 480, "base");
   }
 
-  getEnemy() {
+  getEnemy(x, y, distance) {
+    const enemyUnits = this.enemies.getChildren();
+    for (const enemy of enemyUnits) {
+      if (
+        enemy.active &&
+        Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y) <= distance
+      ) {
+        return enemy;
+      }
+    }
     return false;
   }
 
-  addBullet() {}
+  addBullet(x, y, angle) {
+    let bullet = this.bullets.getFirstDead();
+    if (!bullet) {
+      bullet = new Bullet(this, 0, 0);
+      this.bullets.add(bullet);
+    }
+    bullet.fire(x, y, angle);
+  }
 
   placeTurret(pointer) {
     const i = Math.floor(pointer.y / 64);
@@ -126,6 +153,16 @@ export default class GameScene extends Phaser.Scene {
       turret.setVisible(true);
       turret.place(i, j);
       // todo: add logic to update num of turrets
+    }
+  }
+
+  damageEnemy(enemy, bullet) {
+    if (enemy.active === true && bullet.active === true) {
+      bullet.setActive(false);
+      bullet.setVisible(false);
+
+      // decrease the enemy hp
+      enemy.recieveDamage(levelConfig.initial.bulletDamage);
     }
   }
 }
