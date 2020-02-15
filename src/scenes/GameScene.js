@@ -15,13 +15,24 @@ export default class GameScene extends Phaser.Scene {
     this.nextEnemy = 0;
     this.score = 0;
     this.baseHealth = 3;
+    this.availableTurrets = 2;
+    this.roundStarted = false;
 
     this.events.emit("displayUI");
     this.events.emit("updateScore", this.score);
     this.events.emit("updateHealth", this.baseHealth);
+    this.events.emit("updateTurrets", this.availableTurrets);
+
+    // reference to UI scene
+    this.uiScene = this.scene.get("UI");
   }
 
   create() {
+    this.events.emit("startRound");
+    this.uiScene.events.on("roundReady", () => {
+      this.roundStarted = true;
+    });
+
     this.createMap();
     this.createPath();
     this.createCursor();
@@ -36,7 +47,7 @@ export default class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     // if its time for the next enemy
-    if (time > this.nextEnemy) {
+    if (time > this.nextEnemy && this.roundStarted) {
       let enemy = this.enemies.getFirstDead();
       if (!enemy) {
         enemy = new Enemy(this, 0, 0, this.path);
@@ -65,6 +76,11 @@ export default class GameScene extends Phaser.Scene {
       this.events.emit("hideUI");
       this.scene.start("Title");
     }
+  }
+
+  updateTurrets() {
+    this.availableTurrets--;
+    this.events.emit("updateTurrets", this.availableTurrets);
   }
 
   createGroups() {
@@ -103,7 +119,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   canPlaceTurret(i, j) {
-    return this.map[i][j] === 0;
+    return this.map[i][j] === 0 && this.availableTurrets > 0;
   }
 
   createPath() {
@@ -173,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
       turret.setActive(true);
       turret.setVisible(true);
       turret.place(i, j);
-      // todo: add logic to update num of turrets
+      this.updateTurrets();
     }
   }
 
