@@ -12,23 +12,28 @@ export default class GameScene extends Phaser.Scene {
 
   init() {
     this.map = map.map(arr => arr.slice());
+    this.level = 1;
     this.nextEnemy = 0;
     this.score = 0;
-    this.baseHealth = 3;
-    this.availableTurrets = 2;
+    this.baseHealth = levelConfig.initial.baseHealth;
+    this.availableTurrets = levelConfig.initial.numOfTurrets;
     this.roundStarted = false;
+    this.remainingEnemies =
+      levelConfig.initial.numOfEnemies +
+      this.level * levelConfig.incremental.numOfEnemies;
 
     this.events.emit("displayUI");
     this.events.emit("updateScore", this.score);
     this.events.emit("updateHealth", this.baseHealth);
     this.events.emit("updateTurrets", this.availableTurrets);
+    this.events.emit("updateEnemies", this.remainingEnemies);
 
     // reference to UI scene
     this.uiScene = this.scene.get("UI");
   }
 
   create() {
-    this.events.emit("startRound");
+    this.events.emit("startRound", this.level);
     this.uiScene.events.on("roundReady", () => {
       this.roundStarted = true;
     });
@@ -47,7 +52,11 @@ export default class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     // if its time for the next enemy
-    if (time > this.nextEnemy && this.roundStarted) {
+    if (
+      time > this.nextEnemy &&
+      this.roundStarted &&
+      this.enemies.countActive(true) < this.remainingEnemies
+    ) {
       let enemy = this.enemies.getFirstDead();
       if (!enemy) {
         enemy = new Enemy(this, 0, 0, this.path);
@@ -57,7 +66,7 @@ export default class GameScene extends Phaser.Scene {
       enemy.setVisible(true);
 
       // place the enemy at the start of the path
-      enemy.startOnPath();
+      enemy.startOnPath(this.level);
 
       this.nextEnemy = time + 2000;
     }
@@ -78,8 +87,35 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  updateTurrets() {
-    this.availableTurrets--;
+  levelUp() {
+    // stop round
+    this.roundStarted = false;
+
+    // increment level
+    this.level++;
+
+    // increment number of turrets
+    this.updateTurrets(levelConfig.incremental.numOfTurrets);
+
+    // increment number of enemies
+    this.updateEnemies(
+      levelConfig.initial.numOfEnemies +
+        this.level * levelConfig.incremental.numOfEnemies
+    );
+
+    this.events.emit("startRound", this.level);
+  }
+
+  updateEnemies(numberOfEnemies) {
+    this.remainingEnemies += numberOfEnemies;
+    this.events.emit("updateEnemies", this.remainingEnemies);
+    if (this.remainingEnemies <= 0) {
+      this.levelUp();
+    }
+  }
+
+  updateTurrets(numberOfTurrets) {
+    this.availableTurrets += numberOfTurrets;
     this.events.emit("updateTurrets", this.availableTurrets);
   }
 
@@ -189,7 +225,7 @@ export default class GameScene extends Phaser.Scene {
       turret.setActive(true);
       turret.setVisible(true);
       turret.place(i, j);
-      this.updateTurrets();
+      this.updateTurrets(-1);
     }
   }
 

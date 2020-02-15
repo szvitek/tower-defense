@@ -43,13 +43,15 @@ export default class Enemy extends Phaser.GameObjects.Image {
     }
   }
 
-  startOnPath() {
+  startOnPath(level) {
     // reset health
     this.hp =
-      levelConfig.initial.enemyHealth + levelConfig.incremental.enemyHealth;
+      levelConfig.initial.enemyHealth +
+      level * levelConfig.incremental.enemyHealth;
     // reset speed
     this.enemySpeed =
-      levelConfig.initial.enemySpeed * levelConfig.incremental.enemySpeed;
+      levelConfig.initial.enemySpeed *
+      (level * levelConfig.incremental.enemySpeed);
 
     // set t param at the start of the path
     this.follower.t = 0;
@@ -69,6 +71,7 @@ export default class Enemy extends Phaser.GameObjects.Image {
       this.setActive(false);
       this.setVisible(false);
       this.scene.updateScore(10);
+      this.scene.updateEnemies(-1);
     }
   }
 }
