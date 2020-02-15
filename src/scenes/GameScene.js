@@ -13,6 +13,12 @@ export default class GameScene extends Phaser.Scene {
   init() {
     this.map = map.map(arr => arr.slice());
     this.nextEnemy = 0;
+    this.score = 0;
+    this.baseHealth = 3;
+
+    this.events.emit("displayUI");
+    this.events.emit("updateScore", this.score);
+    this.events.emit("updateHealth", this.baseHealth);
   }
 
   create() {
@@ -43,6 +49,21 @@ export default class GameScene extends Phaser.Scene {
       enemy.startOnPath();
 
       this.nextEnemy = time + 2000;
+    }
+  }
+
+  updateScore(score) {
+    this.score += score;
+    this.events.emit("updateScore", this.score);
+  }
+
+  updateHealth(health) {
+    this.baseHealth -= health;
+    this.events.emit("updateHealth", this.baseHealth);
+
+    if (this.baseHealth < 1) {
+      this.events.emit("hideUI");
+      this.scene.start("Title");
     }
   }
 
