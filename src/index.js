@@ -20,4 +20,21 @@ class Game extends Phaser.Game {
 
 window.onload = function() {
   window.game = new Game(config);
+  resize();
+  window.onresize = resize;
 };
+
+function resize() {
+  const canvas = document.querySelector("canvas");
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  const windowRatio = windowWidth / windowHeight;
+  const gameRatio = config.width / config.height;
+  if (windowRatio < gameRatio) {
+    canvas.style.width = `${windowWidth}px`;
+    canvas.style.height = `${windowWidth / gameRatio}px`;
+  } else {
+    canvas.style.width = `${windowHeight * gameRatio}px`;
+    canvas.style.height = `${windowHeight}px`;
+  }
+}
