@@ -24,8 +24,7 @@ export default class PreloaderScene extends Phaser.Scene {
     this.createPreloader();
 
     // time event for logo
-    // TODO: update delayedCall time
-    this.timedEvent = this.time.delayedCall(1, this.ready, [], this);
+    this.timedEvent = this.time.delayedCall(1000, this.ready, [], this);
 
     this.loadAssets();
   }
@@ -33,9 +32,6 @@ export default class PreloaderScene extends Phaser.Scene {
   createPreloader() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-
-    // add logo image
-    this.add.image(width / 2, height / 2 - 100, "logo");
 
     // display progress bar
     const progressBar = this.add.graphics();
