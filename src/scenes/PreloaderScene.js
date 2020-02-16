@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import logo2Img from "../assets/logo.png";
 import bulletImg from "../assets/level/bulletDark2_outline.png";
 import towerImg from "../assets/level/tank_bigRed.png";
 import enemyImg from "../assets/level/tank_sand.png";
@@ -32,6 +31,9 @@ export default class PreloaderScene extends Phaser.Scene {
   createPreloader() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
+
+    // add logo image
+    this.add.image(width / 2, height / 2 - 100, "logo");
 
     // display progress bar
     const progressBar = this.add.graphics();
@@ -109,9 +111,6 @@ export default class PreloaderScene extends Phaser.Scene {
     this.load.image("cursor", cursorImg);
     this.load.image("button1", button1Img);
     this.load.image("button2", button2Img);
-
-    // placeholder
-    this.load.image("logo2", logo2Img);
 
     // tile map in JSON format
     this.load.tilemapTiledJSON("level1", level1);
